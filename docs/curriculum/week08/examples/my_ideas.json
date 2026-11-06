@@ -1,0 +1,35 @@
+{
+  "profile": {
+    "positioning": "나는 직원 10명 이하 회사 대표가 신입이 자꾸 그만두는 문제를 22년 인사·교육 경험으로 해결하도록 돕는 조직 적응 코치다.",
+    "experiences": [
+      "5년간 신입 120명 교육, 1년 내 퇴사율 40%에서 15%로 감소",
+      "월말 마감 3일에서 반나절로 단축한 엑셀 자동화"
+    ]
+  },
+  "ideas": [
+    {
+      "title": "작은 회사 신입 90일 정착 코칭 (대표 1:1, 4회)",
+      "customer": "직원 10명 이하 회사 대표",
+      "problem": "뽑아 놓은 신입이 3개월을 못 버티고 그만둔다",
+      "scores": {"experience_fit": 5, "willingness_to_pay": 4, "ease_of_start": 4, "time_available": 3, "ai_leverage": 3}
+    },
+    {
+      "title": "소상공인 엑셀·AI 업무 자동화 워크숍 (3시간)",
+      "customer": "총무·회계를 혼자 맡은 소상공인",
+      "problem": "월말 정산에 며칠씩 걸린다",
+      "scores": {"experience_fit": 4, "willingness_to_pay": 3, "ease_of_start": 4, "time_available": 4, "ai_leverage": 5}
+    },
+    {
+      "title": "신입 온보딩 체크리스트 전자책",
+      "customer": "처음 직원을 뽑는 대표",
+      "problem": "신입에게 무엇을 가르쳐야 할지 모른다",
+      "scores": {"experience_fit": 4, "willingness_to_pay": 2, "ease_of_start": 5, "time_available": 5, "ai_leverage": 5}
+    }
+  ],
+  "pricing": {
+    "monthly_goal": 1000000,
+    "monthly_hours": 20,
+    "prep_hours": 1,
+    "session_hours": 1
+  }
+}

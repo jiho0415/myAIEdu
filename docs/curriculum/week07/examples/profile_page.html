@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7주차 실습: 1페이지 프로필 만들기</title>
+<style>
+  :root { --ink: #1f2933; --muted: #5f6b7a; --line: #d9dee5; --accent: #2f6f5e; --bg: #f6f7f9; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+         color: var(--ink); background: var(--bg); font-size: 17px; line-height: 1.6; }
+  header { padding: 20px 16px; background: var(--accent); color: #fff; }
+  header h1 { margin: 0; font-size: 1.3rem; }
+  header p { margin: 4px 0 0; opacity: .9; font-size: .95rem; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px;
+         padding: 20px 16px; max-width: 1100px; margin: 0 auto; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+  .panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  label { display: block; font-weight: 600; margin: 14px 0 6px; }
+  label small { font-weight: 400; color: var(--muted); }
+  input, textarea { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid var(--line); border-radius: 8px; }
+  textarea { min-height: 96px; resize: vertical; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  button { font: inherit; padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent);
+           background: var(--accent); color: #fff; cursor: pointer; }
+  button.ghost { background: #fff; color: var(--accent); }
+  #status { color: var(--accent); min-height: 1.6em; margin-top: 8px; }
+  /* 미리보기 카드: 완성본 HTML에도 같은 스타일이 들어간다 */
+  .card { text-align: center; }
+  .card .avatar { width: 88px; height: 88px; border-radius: 50%; margin: 8px auto 12px; background: var(--accent);
+                  color: #fff; display: grid; place-items: center; font-size: 2rem; font-weight: 700; }
+  .card h2 { margin: 0; font-size: 1.5rem; }
+  .card .tagline { color: var(--accent); font-weight: 600; margin: 4px 0 16px; }
+  .card .intro { text-align: left; white-space: pre-line; }
+  .card ul { text-align: left; padding-left: 1.2em; }
+  .card .contact { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>1페이지 프로필 만들기</h1>
+  <p>브랜드 키트 문구를 붙여 넣으면 오른쪽 미리보기가 바로 바뀝니다. 입력 내용은 이 컴퓨터에만 저장됩니다.</p>
+</header>
+
+<main>
+  <section class="panel" aria-label="입력">
+    <label for="name">이름(호칭)</label>
+    <input id="name" value="김현수">
+
+    <label for="tagline">한 줄 소개 <small>30자 이내</small></label>
+    <input id="tagline" maxlength="40" value="직원 10명 이하 회사의 든든한 조직 적응 코치">
+
+    <label for="intro">자기소개 <small>30초 또는 1분 자기소개</small></label>
+    <textarea id="intro">중소기업 인사·교육 분야에서 22년 일했습니다.
+5년간 신입사원 120명을 교육하며 1년 내 퇴사율을 40%에서 15%로 낮췄습니다.
+지금은 작은 회사 대표님들이 "신입이 자꾸 그만두는" 문제를 풀도록 돕고 있습니다.</textarea>
+
+    <label for="pillars">이런 이야기를 씁니다 <small>한 줄에 하나씩</small></label>
+    <textarea id="pillars">신입 첫 90일 정착 노하우
+작은 회사 업무 자동화
+거래처와 오래 가는 대화법</textarea>
+
+    <label for="contact">연락 방법 <small>공개해도 되는 것만</small></label>
+    <input id="contact" placeholder="예: 블로그 주소 또는 업무용 이메일">
+
+    <div class="actions">
+      <button type="button" id="copyBtn">완성본 HTML 복사</button>
+      <button type="button" id="resetBtn" class="ghost">예시로 되돌리기</button>
+    </div>
+    <p id="status" role="status"></p>
+  </section>
+
+  <section class="panel card" aria-label="미리보기">
+    <div class="avatar" id="pAvatar"></div>
+    <h2 id="pName"></h2>
+    <p class="tagline" id="pTagline"></p>
+    <p class="intro" id="pIntro"></p>
+    <h3>이런 이야기를 씁니다</h3>
+    <ul id="pPillars"></ul>
+    <p class="contact" id="pContact"></p>
+  </section>
+</main>
+
+<script>
+  const FIELDS = ["name", "tagline", "intro", "pillars", "contact"];
+  const STORAGE_KEY = "myaiedu-week07-profile";
+  const defaults = {};
+
+  const byId = (id) => document.getElementById(id);
+  const readForm = () => Object.fromEntries(FIELDS.map((f) => [f, byId(f).value.trim()]));
+  const splitLines = (text) => text.split("\n").map((s) => s.trim()).filter(Boolean);
+
+  // 완성본 HTML 문자열을 만들 때 입력값이 태그로 해석되지 않도록 반드시 이스케이프한다.
+  const escapeHtml = (text) => text.replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // 미리보기는 textContent만 써서 사용자 입력이 HTML로 실행되지 않게 한다.
+  function renderPreview(data) {
+    byId("pAvatar").textContent = (data.name || "?").slice(0, 1);
+    byId("pName").textContent = data.name;
+    byId("pTagline").textContent = data.tagline;
+    byId("pIntro").textContent = data.intro;
+    byId("pContact").textContent = data.contact ? `연락: ${data.contact}` : "";
+    const list = byId("pPillars");
+    list.replaceChildren(...splitLines(data.pillars).map((line) => {
+      const li = document.createElement("li");
+      li.textContent = line;
+      return li;
+    }));
+  }
+
+  function buildStandaloneHtml(data) {
+    const style = document.querySelector("style").textContent;
+    const pillars = splitLines(data.pillars).map((p) => `<li>${escapeHtml(p)}</li>`).join("");
+    const contact = data.contact ? `<p class="contact">연락: ${escapeHtml(data.contact)}</p>` : "";
+    return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(data.name)} | ${escapeHtml(data.tagline)}</title><style>${style}
+main { grid-template-columns: 1fr; max-width: 560px; }</style></head>
+<body><main><section class="panel card">
+<div class="avatar">${escapeHtml((data.name || "?").slice(0, 1))}</div>
+<h2>${escapeHtml(data.name)}</h2><p class="tagline">${escapeHtml(data.tagline)}</p>
+<p class="intro">${escapeHtml(data.intro)}</p><h3>이런 이야기를 씁니다</h3><ul>${pillars}</ul>${contact}
+</section></main></body></html>`;
+  }
+
+  // 저장소 접근이 막힌 브라우저(사생활 보호 모드 등)에서도 페이지는 정상 동작해야 한다.
+  function saveDraft(data) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { /* 저장 실패는 무시 */ }
+  }
+  function loadDraft() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (e) { return null; }
+  }
+
+  function update() {
+    const data = readForm();
+    renderPreview(data);
+    saveDraft(data);
+  }
+
+  async function copyHtml() {
+    const html = buildStandaloneHtml(readForm());
+    try {
+      await navigator.clipboard.writeText(html);
+      byId("status").textContent = "복사했습니다. 메모장에 붙여 넣고 profile.html로 저장하세요.";
+    } catch (e) {
+      byId("status").textContent = "복사가 막혀 있습니다. 브라우저 주소창 옆 권한을 확인하세요.";
+    }
+  }
+
+  FIELDS.forEach((f) => { defaults[f] = byId(f).value; });
+  const draft = loadDraft();
+  if (draft) FIELDS.forEach((f) => { if (typeof draft[f] === "string") byId(f).value = draft[f]; });
+
+  FIELDS.forEach((f) => byId(f).addEventListener("input", update));
+  byId("copyBtn").addEventListener("click", copyHtml);
+  byId("resetBtn").addEventListener("click", () => {
+    FIELDS.forEach((f) => { byId(f).value = defaults[f]; });
+    update();
+    byId("status").textContent = "예시 내용으로 되돌렸습니다.";
+  });
+  update();
+</script>
+</body>
+</html>
